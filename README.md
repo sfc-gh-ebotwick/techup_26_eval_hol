@@ -2,7 +2,6 @@
 Hands on Lab materials for eval driven agent optimization coco for Techup 2026
 
 
-
 # Instructions
 
 ## 1. Setup 
@@ -19,4 +18,11 @@ Now - on your local machine or in Github Codespaces - start a new CoCo CLI sessi
 
 ## 4. Challenge!
 
-You should have seen a decent improvement in your evaluation metrics going from your baseline to your optimized agent. Now lets take things a bit further and see how far you can take your agent!
+You should have seen a decent improvement in your evaluation metrics going from your baseline to your optimized agent. Now lets take things a bit further and see how far you can take your agent! This is your turn to use your AI and Snowflake knowledge to apply new methods to the agent to see how high we can push our agent quality.
+
+A few ideas of things to try
+- An updated Semantic Model
+- A new orchestration model
+- Enriched tool descriptions
+
+The world is your oyster - get creative and see if you can impress the judges - LLM and Human!
