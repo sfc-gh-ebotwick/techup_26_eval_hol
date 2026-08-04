@@ -1,0 +1,32 @@
+================================================================================================
+PROMPT 1 - Find failure patterns and apply fixes to improve agent
+================================================================================================
+    
+Look at the eval result for my agent TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT and determine common failure patterns. 
+Based on the failure analysis, generate improved orchestration and response instructions that fix the identified issues. 
+The instructions should tell the agent what format to respond in, when to use multiple tools and in what order, and encourage efficient tool calling. 
+Only make updates to the instructions - do not make any updates to the tool configuration or other areas of the agent spec. 
+Apply the changes and commit them to a new agent version. 
+	
+    
+================================================================================================
+PROMPT 2 - Rerun eval and measure improvements
+================================================================================================
+
+
+Run the evaluation of TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_CAMPAIGNS_AGENT against the same dataset again.
+Compare the results against the baseline — show me a side-by-side comparison of scores by metricand highlight what improved.
+
+
+================================================================================================
+PROMPT/Action 3,4,5 - Your turn! What can you think to try to improve the agent further?
+================================================================================================
+
+We more than likely saw a decent improvement from our baseline improvement to our optimized agent - but can we make it even better?
+This is your turn to use your AI and Snowflake knowledge to apply new methods to the agent to see how high we can push our agent quality.
+A few ideas of things to try
+- An updated Semantic Model
+- A new orchestration model
+- Enriched tool descriptions
+
+The world is your oyster - get creative and see if you can impress the judges - LLM and Human!
