@@ -1,0 +1,888 @@
+-- ====================================================================
+-- MARKETING CAMPAIGNS ANALYTICS SYSTEM - COMPLETE SETUP SCRIPT
+-- ====================================================================
+-- This script creates a complete marketing campaigns analytics system with:
+-- - Database and tables with sample data
+-- - Semantic view for Cortex Analyst
+-- - Cortex Search service for content discovery
+-- - Stored procedure for report generation
+-- - Cortex Agent integrating all tools
+--
+-- Prerequisites:
+-- - ACCOUNTADMIN role (or role with CREATE DATABASE privileges)
+-- - Access to COMPUTE_WH warehouse (or modify warehouse name below)
+-- - SNOWFLAKE.CORTEX_USER database role granted
+--
+-- Estimated runtime: 5-10 minutes
+-- ====================================================================
+
+-- ====================================================================
+-- SECTION 1: DATABASE AND SCHEMA CREATION
+-- ====================================================================
+
+-- Use ACCOUNTADMIN to setup
+USE ROLE ACCOUNTADMIN;
+
+-- Create database using variable
+CREATE DATABASE IF NOT EXISTS TECHUP_EVAL_LAB_DB;
+CREATE OR REPLACE SCHEMA TECHUP_EVAL_LAB_DB.AGENTS;
+USE SCHEMA TECHUP_EVAL_LAB_DB.AGENTS;
+CREATE WAREHOUSE IF NOT EXISTS COMPUTE_WH WAREHOUSE_SIZE='SMALL';
+
+
+-- ====================================================================
+-- SECTION 2: NEW ROLE CONFIGURATION
+-- ====================================================================
+
+-- Create new role
+CREATE OR REPLACE ROLE AGENT_EVAL_ROLE;
+
+-- Set current user (or change if running on behalf of a coworker)
+SET AGENT_EVAL_USER = CURRENT_USER();
+
+-- Grant role to user
+GRANT ROLE AGENT_EVAL_ROLE to USER IDENTIFIER($AGENT_EVAL_USER);
+
+-- Usage on DB and Schema
+GRANT USAGE ON DATABASE TECHUP_EVAL_LAB_DB TO ROLE AGENT_EVAL_ROLE;
+GRANT USAGE ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+GRANT CREATE TABLE ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+GRANT CREATE STAGE ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+
+
+-- Specialized db/application roles
+GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE AGENT_EVAL_ROLE;
+GRANT APPLICATION ROLE SNOWFLAKE.AI_OBSERVABILITY_EVENTS_LOOKUP TO ROLE AGENT_EVAL_ROLE;
+
+-- Create Datasets
+GRANT CREATE FILE FORMAT ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+GRANT CREATE DATASET ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+
+-- Create and execute tasks
+GRANT CREATE TASK ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+GRANT EXECUTE TASK ON ACCOUNT TO ROLE AGENT_EVAL_ROLE;
+
+-- Run evaluations
+GRANT MONITOR ON FUTURE AGENTS IN SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+
+-- Warehouse usage on COMPUTE_WH and on User's defualt WH (which is used for eval tasks)
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE AGENT_EVAL_ROLE;
+
+EXECUTE IMMEDIATE $$
+DECLARE
+    wh_name VARCHAR;
+BEGIN
+    EXECUTE IMMEDIATE 'DESC USER ' || CURRENT_USER();
+    SELECT "value" INTO wh_name 
+    FROM TABLE(RESULT_SCAN(LAST_QUERY_ID())) 
+    WHERE "property" = 'DEFAULT_WAREHOUSE';
+    
+    EXECUTE IMMEDIATE 'GRANT USAGE ON WAREHOUSE ' || wh_name || ' TO ROLE AGENT_EVAL_ROLE';
+    RETURN 'Granted USAGE on ' || wh_name;
+END;
+$$;
+
+-- Git setup
+GRANT CREATE API INTEGRATION ON ACCOUNT TO ROLE AGENT_EVAL_ROLE;
+GRANT CREATE GIT REPOSITORY ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+
+-- Service and Agent creation
+GRANT CREATE SEMANTIC VIEW ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+GRANT CREATE CORTEX SEARCH SERVICE ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+GRANT CREATE PROCEDURE ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+GRANT CREATE AGENT ON SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
+
+-- ============================================================================
+-- SECTION 3: CREATE GIT INTEGRATION (for loading CSV files from repo)
+-- ============================================================================
+
+-- Use new role
+USE ROLE AGENT_EVAL_ROLE;
+
+-- Create API integration for GitHub (public repo, no secrets needed)
+CREATE API INTEGRATION IF NOT EXISTS GIT_API_INTEGRATION_AGENT_EVAL_QUICKSTART
+    API_PROVIDER = git_https_api
+    API_ALLOWED_PREFIXES = ('https://github.com/Snowflake-Labs/')
+    ENABLED = TRUE;
+
+-- Clone the GitHub repository
+CREATE OR REPLACE GIT REPOSITORY CORTEX_AGENT_QUICKSTART_REPO
+    API_INTEGRATION = GIT_API_INTEGRATION_AGENT_EVAL_QUICKSTART
+    ORIGIN = 'https://github.com/Snowflake-Labs/sfguide-getting-started-with-cortex-agent-evaluations.git';
+
+-- Fetch latest from GitHub
+ALTER GIT REPOSITORY CORTEX_AGENT_QUICKSTART_REPO FETCH;
+
+-- Verify repository
+SHOW GIT BRANCHES IN CORTEX_AGENT_QUICKSTART_REPO;
+LS @CORTEX_AGENT_QUICKSTART_REPO/branches/main/data;
+LS @CORTEX_AGENT_QUICKSTART_REPO/branches/main/data;
+
+
+
+-- ============================================================================
+-- SECTION 4: CREATE AND POPULATE TABLES
+-- ============================================================================
+
+-- First create a file format to use when reading data from github
+CREATE OR REPLACE FILE FORMAT AGENT_EVAL_QUICKSTART_CSV_FORMAT
+  TYPE = 'CSV'
+  FIELD_DELIMITER = ','
+  SKIP_HEADER = 1
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  COMPRESSION = 'AUTO';
+
+
+-- ============================================================================
+-- CAMPAIGNS
+-- ============================================================================
+-- Create CAMPAIGNS table
+CREATE OR REPLACE TABLE CAMPAIGNS (
+    campaign_id INT,
+    campaign_name VARCHAR(200) NOT NULL,
+    campaign_type VARCHAR(50),
+    start_date DATE,
+    end_date DATE,
+    budget_allocated DECIMAL(12,2),
+    target_audience VARCHAR(200),
+    channel VARCHAR(50),
+    status VARCHAR(50),
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Populate CAMPAIGNS table
+INSERT INTO CAMPAIGNS (campaign_id, campaign_name, campaign_type, start_date, end_date, budget_allocated, target_audience, channel, status, created_by)
+SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+FROM @CORTEX_AGENT_QUICKSTART_REPO/branches/main/data/CAMPAIGNS.csv (FILE_FORMAT=>AGENT_EVAL_QUICKSTART_CSV_FORMAT);
+
+-- ============================================================================
+-- CAMPAIGN_PERFORMANCE
+-- ============================================================================
+-- Create CAMPAIGN_PERFORMANCE table
+CREATE OR REPLACE TABLE CAMPAIGN_PERFORMANCE (
+    performance_id INT,
+    campaign_id INT,
+    date DATE,
+    impressions INT,
+    clicks INT,
+    conversions INT,
+    cost_per_click DECIMAL(10,4),
+    cost_per_acquisition DECIMAL(10,2),
+    revenue_generated DECIMAL(12,2),
+    roi_percentage DECIMAL(8,2),
+    engagement_rate DECIMAL(8,4)
+    -- FOREIGN KEY (campaign_id) REFERENCES CAMPAIGNS(campaign_id)
+);
+
+-- Populate CAMPAIGN_PERFORMANCE table
+INSERT INTO CAMPAIGN_PERFORMANCE (performance_id, campaign_id, date, impressions, clicks, conversions, cost_per_click, cost_per_acquisition, revenue_generated, roi_percentage, engagement_rate) 
+SELECT $1, $2,$3,$4,$5, $6, $7, $8, $9, $10, $11
+FROM @CORTEX_AGENT_QUICKSTART_REPO/branches/main/data/CAMPAIGN_PERFORMANCE.csv (FILE_FORMAT=>AGENT_EVAL_QUICKSTART_CSV_FORMAT);
+
+-- ============================================================================
+--CAMPAIGN_CONTENT
+-- ============================================================================
+-- Create CAMPAIGN_CONTENT table
+CREATE OR REPLACE TABLE CAMPAIGN_CONTENT (
+    campaign_id INT,
+    content_type VARCHAR(100),
+    campaign_description TEXT,
+    marketing_copy TEXT,
+    a_b_test_notes TEXT
+    -- FOREIGN KEY (campaign_id) REFERENCES CAMPAIGNS(campaign_id)
+);
+
+-- Populate CAMPAIGN_CONTENT table
+INSERT INTO CAMPAIGN_CONTENT (campaign_id, content_type, campaign_description, marketing_copy, a_b_test_notes)
+SELECT $1, $2,$3,$4,$5 
+FROM @CORTEX_AGENT_QUICKSTART_REPO/branches/main/data/CAMPAIGN_CONTENT.csv (FILE_FORMAT=>AGENT_EVAL_QUICKSTART_CSV_FORMAT);
+
+-- ============================================================================
+--CAMPAIGN_FEEDBACK
+-- ============================================================================
+-- Create CAMPAIGN_FEEDBACK table
+CREATE OR REPLACE TABLE CAMPAIGN_FEEDBACK (
+    feedback_id INT,
+    campaign_id INT,
+    feedback_date DATE,
+    customer_segment VARCHAR(100),
+    satisfaction_score DECIMAL(3,2),
+    detailed_comments TEXT,
+    survey_responses TEXT,
+    recommended_improvements TEXT
+    -- FOREIGN KEY (campaign_id) REFERENCES CAMPAIGNS(campaign_id)
+);
+
+-- Populate CAMPAIGN_FEEDBACK table
+INSERT INTO CAMPAIGN_FEEDBACK (feedback_id, campaign_id, feedback_date, customer_segment, satisfaction_score, detailed_comments, survey_responses, recommended_improvements)
+SELECT $1, $2,$3,$4,$5, $6, $7, $8
+FROM @CORTEX_AGENT_QUICKSTART_REPO/branches/main/data/CAMPAIGN_FEEDBACK.csv (FILE_FORMAT=>AGENT_EVAL_QUICKSTART_CSV_FORMAT);
+
+-- ============================================================================
+--EVALS_TABLE
+-- ============================================================================
+-- Create EVALS_TABLE table
+CREATE OR REPLACE TABLE EVALS_TABLE (
+    INPUT_QUERY TEXT,
+    GROUND_TRUTH_DATA VARCHAR);
+
+-- Populate EVALS_TABLE table
+INSERT INTO EVALS_TABLE (input_query, ground_truth_data)
+SELECT $1, $2
+FROM @CORTEX_AGENT_QUICKSTART_REPO/branches/main/data/EVALS_TABLE.csv (FILE_FORMAT=>AGENT_EVAL_QUICKSTART_CSV_FORMAT);
+
+CREATE OR REPLACE TABLE EVALS_TABLE
+AS SELECT INPUT_QUERY, PARSE_JSON(GROUND_TRUTH_DATA) AS GROUND_TRUTH_DATA
+FROM EVALS_TABLE;
+
+
+-- ====================================================================
+-- SECTION 5: VALIDATE DATA;
+-- ====================================================================
+
+SELECT * FROM CAMPAIGNS;
+
+SELECT * FROM CAMPAIGN_CONTENT;
+
+SELECT * FROM CAMPAIGN_FEEDBACK;
+
+SELECT * FROM CAMPAIGN_PERFORMANCE;
+
+SELECT * FROM EVALS_TABLE;
+
+-- ====================================================================
+-- SECTION 6: CREATE SEMANTIC VIEW
+-- ====================================================================
+
+CREATE OR REPLACE SEMANTIC VIEW MARKETING_PERFORMANCE_ANALYST
+  TABLES (
+    campaigns AS CAMPAIGNS PRIMARY KEY (campaign_id),
+    performance AS CAMPAIGN_PERFORMANCE PRIMARY KEY (performance_id)
+  )
+  RELATIONSHIPS (
+    performance(campaign_id) REFERENCES campaigns(campaign_id)
+  )
+  DIMENSIONS (
+    PUBLIC campaigns.campaign_id AS campaign_id,
+    PUBLIC campaigns.campaign_name AS campaign_name,
+    PUBLIC campaigns.campaign_type AS campaign_type,
+    PUBLIC campaigns.channel AS channel,
+    PUBLIC campaigns.target_audience AS target_audience,
+    PUBLIC campaigns.status AS status,
+    PUBLIC campaigns.start_date AS start_date,
+    PUBLIC campaigns.end_date AS end_date,
+    PUBLIC campaigns.created_by AS created_by,
+    PUBLIC performance.date AS date
+  )
+  METRICS (
+    PUBLIC performance.total_revenue AS SUM(revenue_generated),
+    PUBLIC performance.total_impressions AS SUM(impressions),
+    PUBLIC performance.total_clicks AS SUM(clicks),
+    PUBLIC performance.total_conversions AS SUM(conversions),
+    PUBLIC performance.avg_cost_per_click AS AVG(cost_per_click),
+    PUBLIC performance.avg_cost_per_acquisition AS AVG(cost_per_acquisition),
+    PUBLIC performance.avg_roi AS AVG(roi_percentage),
+    PUBLIC performance.avg_engagement_rate AS AVG(engagement_rate),
+    PUBLIC campaigns.total_budget AS SUM(budget_allocated),
+    PUBLIC campaigns.campaign_count AS COUNT(campaign_id)
+  )
+  COMMENT = 'Semantic view for analyzing marketing campaign performance and ROI';
+
+-- Verify semantic view was created
+SHOW SEMANTIC VIEWS LIKE 'MARKETING_PERFORMANCE_ANALYST';
+
+-- ====================================================================
+-- SECTION 7: CREATE CORTEX SEARCH SERVICE
+-- ====================================================================
+
+CREATE OR REPLACE CORTEX SEARCH SERVICE MARKETING_CAMPAIGNS_SEARCH
+  ON combined_text
+  ATTRIBUTES campaign_name, campaign_type, channel, content_type
+  WAREHOUSE = COMPUTE_WH
+  TARGET_LAG = '1 hour'
+  AS (
+    SELECT 
+      c.campaign_id,
+      c.campaign_name,
+      c.campaign_type,
+      c.channel,
+      cnt.content_type,
+      CONCAT(
+        'Campaign: ', c.campaign_name, '. ',
+        'Type: ', c.campaign_type, '. ',
+        'Channel: ', c.channel, '. ',
+        'Description: ', cnt.campaign_description, '. ',
+        'Marketing Copy: ', cnt.marketing_copy, '. ',
+        'A/B Test Notes: ', cnt.a_b_test_notes
+      ) as combined_text
+    FROM CAMPAIGNS c
+    JOIN CAMPAIGN_CONTENT cnt ON c.campaign_id = cnt.campaign_id
+    
+    UNION ALL
+    
+    SELECT 
+      c.campaign_id,
+      c.campaign_name,
+      c.campaign_type,
+      c.channel,
+      'feedback' as content_type,
+      CONCAT(
+        'Campaign: ', c.campaign_name, '. ',
+        'Customer Segment: ', fb.customer_segment, '. ',
+        'Satisfaction Score: ', fb.satisfaction_score, '. ',
+        'Comments: ', fb.detailed_comments, '. ',
+        'Improvements: ', fb.recommended_improvements
+      ) as combined_text
+    FROM CAMPAIGNS c
+    JOIN CAMPAIGN_FEEDBACK fb ON c.campaign_id = fb.campaign_id
+  );
+
+-- Verify search service was created
+SHOW CORTEX SEARCH SERVICES LIKE 'MARKETING_CAMPAIGNS_SEARCH';
+
+-- ====================================================================
+-- SECTION 8: CREATE REPORT GENERATION STORED PROCEDURE
+-- ====================================================================
+
+-- Create an internal stage with directory table enabled
+CREATE OR REPLACE STAGE CAMPAIGN_REPORTS
+  DIRECTORY = (ENABLE = TRUE)
+  COMMENT = 'Internal stage to host generated campaign reports';
+
+CREATE OR REPLACE PROCEDURE GENERATE_CAMPAIGN_REPORT_HTML(campaign_id NUMBER)
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER                                                                                                                         
+AS
+$$
+DECLARE
+  report_html VARCHAR;
+  campaign_info VARCHAR;
+  performance_metrics VARCHAR;
+  feedback_summary VARCHAR;
+  file_name VARCHAR;
+  upload_result VARCHAR;
+  org_name VARCHAR;
+  account_name VARCHAR;
+BEGIN
+  -- Get campaign basic information
+  SELECT 
+    '<h1>Campaign Report</h1>' ||
+    '<h2>Campaign: ' || campaign_name || '</h2>' ||
+    '<p><strong>Type:</strong> ' || campaign_type || '</p>' ||
+    '<p><strong>Channel:</strong> ' || channel || '</p>' ||
+    '<p><strong>Duration:</strong> ' || start_date || ' to ' || end_date || '</p>' ||
+    '<p><strong>Budget:</strong> $' || budget_allocated || '</p>' ||
+    '<p><strong>Target Audience:</strong> ' || target_audience || '</p>' ||
+    '<p><strong>Status:</strong> ' || status || '</p>'
+  INTO campaign_info
+  FROM CAMPAIGNS
+  WHERE campaign_id = :campaign_id;
+  
+  -- Get performance metrics summary
+  SELECT 
+    '<h3>Performance Metrics</h3>' ||
+    '<table border="1" style="border-collapse:collapse; width:100%">' ||
+    '<tr><th>Metric</th><th>Value</th></tr>' ||
+    '<tr><td>Total Impressions</td><td>' || TO_CHAR(SUM(impressions), '999,999,999') || '</td></tr>' ||
+    '<tr><td>Total Clicks</td><td>' || TO_CHAR(SUM(clicks), '999,999,999') || '</td></tr>' ||
+    '<tr><td>Total Conversions</td><td>' || TO_CHAR(SUM(conversions), '999,999') || '</td></tr>' ||
+    '<tr><td>Click-Through Rate</td><td>' || ROUND((SUM(clicks)::FLOAT / SUM(impressions)::FLOAT) * 100, 2) || '%</td></tr>' ||
+    '<tr><td>Conversion Rate</td><td>' || ROUND((SUM(conversions)::FLOAT / SUM(clicks)::FLOAT) * 100, 2) || '%</td></tr>' ||
+    '<tr><td>Average Cost Per Click</td><td>$' || ROUND(AVG(cost_per_click), 2) || '</td></tr>' ||
+    '<tr><td>Average Cost Per Acquisition</td><td>$' || ROUND(AVG(cost_per_acquisition), 2) || '</td></tr>' ||
+    '<tr><td>Total Revenue Generated</td><td>$' || TO_CHAR(SUM(revenue_generated), '999,999,999.99') || '</td></tr>' ||
+    '<tr><td>Average ROI</td><td>' || ROUND(AVG(roi_percentage), 2) || '%</td></tr>' ||
+    '<tr><td>Average Engagement Rate</td><td>' || ROUND(AVG(engagement_rate) * 100, 2) || '%</td></tr>' ||
+    '</table>'
+  INTO performance_metrics
+  FROM CAMPAIGN_PERFORMANCE
+  WHERE campaign_id = :campaign_id;
+  
+  -- Get feedback summary
+  SELECT 
+    '<h3>Customer Feedback Summary</h3>' ||
+    '<p><strong>Average Satisfaction Score:</strong> ' || ROUND(AVG(satisfaction_score), 2) || ' / 5.0</p>' ||
+    '<p><strong>Number of Feedback Entries:</strong> ' || COUNT(*) || '</p>' ||
+    '<h4>Recent Feedback:</h4>' ||
+    LISTAGG(
+      '<div style="border:1px solid #ccc; padding:10px; margin:10px 0;">' ||
+      '<p><strong>Segment:</strong> ' || customer_segment || '</p>' ||
+      '<p><strong>Score:</strong> ' || satisfaction_score || ' / 5.0</p>' ||
+      '<p><strong>Comments:</strong> ' || detailed_comments || '</p>' ||
+      '<p><strong>Recommendations:</strong> ' || recommended_improvements || '</p>' ||
+      '</div>',
+      ''
+    ) WITHIN GROUP (ORDER BY feedback_date DESC)
+  INTO feedback_summary
+  FROM CAMPAIGN_FEEDBACK
+  WHERE campaign_id = :campaign_id;
+  
+  -- Combine all sections
+  report_html := '<!DOCTYPE html><html><head><style>' ||
+    'body { font-family: Arial, sans-serif; margin: 20px; }' ||
+    'table { margin: 20px 0; }' ||
+    'th { background-color: #4CAF50; color: white; padding: 10px; text-align: left; }' ||
+    'td { padding: 10px; }' ||
+    'tr:nth-child(even) { background-color: #f2f2f2; }' ||
+    '</style></head><body>' ||
+    campaign_info ||
+    performance_metrics ||
+    COALESCE(feedback_summary, '<p>No feedback available</p>') ||
+    '<hr><p style="text-align:center; color:#666;">Report Generated: ' || CURRENT_TIMESTAMP() || '</p>' ||
+    '</body></html>';
+  
+  -- Generate filename with timestamp
+  file_name := 'CAMPAIGN_' || campaign_id || '_' || TO_CHAR(CURRENT_TIMESTAMP(), 'YYYY-MM-DD_HH_MI') || '.html';
+  
+  -- Create a file format for HTML content
+  EXECUTE IMMEDIATE '
+    CREATE OR REPLACE FILE FORMAT html_format
+    TYPE = ''CSV''
+    FIELD_DELIMITER = NONE
+    RECORD_DELIMITER = NONE
+    SKIP_HEADER = 0
+    FIELD_OPTIONALLY_ENCLOSED_BY = NONE
+    ESCAPE_UNENCLOSED_FIELD = NONE
+    COMPRESSION = NONE
+    ENCODING = ''UTF8''
+  ';
+  
+  -- Create temporary table to hold the HTML content
+  EXECUTE IMMEDIATE 'CREATE OR REPLACE TEMPORARY TABLE temp_report_' || campaign_id || ' (html_content VARCHAR(16777216))';
+  
+  -- Insert the HTML content
+  EXECUTE IMMEDIATE 'INSERT INTO temp_report_' || campaign_id || ' VALUES (?)' USING (report_html);
+  
+  -- Copy the file to the stage using the HTML file format
+  EXECUTE IMMEDIATE 
+    'COPY INTO @CAMPAIGN_REPORTS/' || file_name || 
+    ' FROM (SELECT html_content FROM temp_report_' || campaign_id || ') ' ||
+    'FILE_FORMAT = html_format ' ||
+    'SINGLE = TRUE OVERWRITE = TRUE HEADER = FALSE';
+  
+  -- Clean up temporary table
+  EXECUTE IMMEDIATE 'DROP TABLE temp_report_' || campaign_id;
+
+SELECT CURRENT_ORGANIZATION_NAME(), CURRENT_ACCOUNT_NAME() 
+  INTO ORG_NAME, ACCOUNT_NAME;
+  
+  upload_result := 'Report '|| file_name || ' generated and uploaded to stage. View here - https://app.snowflake.com/'|| ORG_NAME ||'/' || ACCOUNT_NAME ||'/#/data/databases/TECHUP_EVAL_LAB_DB/schemas/AGENTS/stage/CAMPAIGN_REPORTS';
+
+  
+  RETURN upload_result;
+END;
+$$;
+
+-- Verify procedure was created
+
+SHOW PROCEDURES like 'GENERATE_CAMPAIGN_REPORT_HTML';
+-- ====================================================================
+-- SECTION 9: TEST NEWLY CREATED SERVICES
+-- ====================================================================
+
+-- Simple campaign performance summary
+-- Campaign performance by type
+
+
+-- Test semantic view
+SELECT 
+    campaign_type,
+    campaign_count,
+    total_budget,
+    total_revenue,
+    avg_roi
+FROM SEMANTIC_VIEW(
+    MARKETING_PERFORMANCE_ANALYST
+    DIMENSIONS campaign_type
+    METRICS campaign_count, total_budget, total_revenue, avg_roi
+);
+
+-- Test search service
+SELECT PARSE_JSON(
+    SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+        'MARKETING_CAMPAIGNS_SEARCH',
+        '{"query": "email campaigns", "columns": ["campaign_name", "campaign_type", "combined_text"], "limit": 3}'
+    )
+) as search_results;
+
+-- Test stored procedure
+CALL GENERATE_CAMPAIGN_REPORT_HTML(1);
+
+LS @CAMPAIGN_REPORTS;
+
+-- ====================================================================
+-- SECTION 10: CREATE CORTEX AGENT
+-- ====================================================================
+
+
+CREATE OR REPLACE AGENT MARKETING_AGENT
+WITH PROFILE='{ "display_name": "MARKETING_AGENT" }'
+    COMMENT=$$ Agent specializing in analyzing marketing campaigns for performance, ROI, feedback, etc. $$
+FROM SPECIFICATION $$
+{
+    "models": {"orchestration": "claude-sonnet-5"},
+    "instructions": {
+        "orchestration": "",
+        "response": "",
+        "sample_questions": [
+      {
+        "question": "What campaigns have the highest ROI?"
+      }
+    ]
+    },
+    "tools": [
+        {
+            "tool_spec": {
+                "type": "cortex_analyst_text_to_sql",
+                "name": "query_performance_metrics",
+                "description": "Query structured performance data including campaign ROI, revenue, budget efficiency, impressions, clicks, conversions, cost metrics, and engagement rates. Use for quantitative analysis of campaign performance across channels and time periods."
+            }
+        },
+        {
+            "tool_spec": {
+                "type": "cortex_search",
+                "name": "search_campaign_content",
+                "description": "Search unstructured campaign content including campaign descriptions, marketing copy, A/B test results, customer feedback, and recommended improvements. Use for qualitative insights, content discovery, and learning from past campaigns."
+            }
+        },
+        {
+            "tool_spec": {
+                "type": "generic",
+                "name": "generate_campaign_report",
+                "description": "Generate a comprehensive HTML report for a specific campaign including all performance metrics, customer feedback, and key insights. Returns formatted report ready for PDF conversion.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "campaign_id": {
+                            "type": "integer",
+                            "description": "The unique identifier of the campaign to generate a report for"
+                        }
+                    },
+                    "required": ["campaign_id"]
+                }
+            }
+        }
+    ],
+    "tool_resources": {
+        "query_performance_metrics": {
+            "execution_environment": {
+                "query_timeout": 299,
+                "type": "warehouse",
+                "warehouse": "COMPUTE_WH"
+            },
+            "semantic_view": "TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_PERFORMANCE_ANALYST"
+        },
+        "search_campaign_content": {
+            "execution_environment": {
+                "query_timeout": 299,
+                "type": "warehouse",
+                "warehouse": "COMPUTE_WH"
+            },
+            "search_service": "TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_CAMPAIGNS_SEARCH"
+        },
+        "generate_campaign_report": {
+            "type": "procedure",
+            "identifier": "TECHUP_EVAL_LAB_DB.AGENTS.GENERATE_CAMPAIGN_REPORT_HTML",
+            "execution_environment": {
+                "type": "warehouse",
+                "warehouse": "COMPUTE_WH",
+                "query_timeout": 300
+            }
+        }
+    }
+}
+
+$$;
+-- Validate agent creation
+DESCRIBE AGENT MARKETING_AGENT;
+
+-- Grant usage, modify, monitor on agent to accountadmin
+GRANT MONITOR ON AGENT MARKETING_AGENT to ROLE ACCOUNTADMIN;
+
+-- ====================================================================
+-- SECTION 10.5: EXPLORE AGENT VERSIONS
+-- ====================================================================
+-- CREATE AGENT automatically creates two versions:
+--   VERSION$1 (committed, immutable snapshot of the baseline spec)
+--   LIVE (mutable working copy for development)
+
+-- View all versions
+SHOW VERSIONS IN AGENT MARKETING_AGENT;
+
+-- Assign a human-readable alias to the baseline version
+ALTER AGENT MARKETING_AGENT
+  MODIFY VERSION VERSION$1 SET ALIAS = baseline;
+
+-- The default version is VERSION$1 (latest committed = LAST)
+-- The baseline eval in Section 12 will run against this version
+SHOW VERSIONS IN AGENT MARKETING_AGENT;
+
+
+-- ====================================================================
+-- SECTION 11: OPTIONAL - UI DRIVEN AGENT EVALUATIONS 
+-- ====================================================================
+
+
+SELECT 
+$$
+Optionally follow the below instructions to use the Agents UI to evaluate the performance of your new agent! Note we will programmatically execute evaluations in Section 12. 
+
+- Navigate to your newly created agent and click into Evaluations Tab
+    - Name your new evaluation run and optionally give a description [click next]
+    - Select Create New Dataset
+        - Select TECHUP_EVAL_LAB_DB.AGENTS.EVALS_TABLE as your input table
+        - Select TECHUP_EVAL_LAB_DB.AGENTS.QUICKSTART_EVALSET as your new dataset destination [click next]
+    - Select INPUT_QUERY as your Query Text column
+        - Check boxes for all metrics available
+        - Tool Selection Accuracy, Tool Execution Accuracy, and Answer Correctness should reference the EXPECTED_TOOLS column
+        - Click Create Evaluation
+        
+Now wait as your queries are executed and your evaluation metrics are computed! This should populate in roughly ~3-5 minutes.
+
+Compare how the baseline agent and the optimized agent performed on various metrics!
+
+====================================================================
+$$ as setup_status;
+
+-- ====================================================================
+-- SECTION 12: AGENT EVALUATION
+-- ====================================================================
+
+-- First we will create a dataset to use for evaluating our agent
+CALL SYSTEM$CREATE_EVALUATION_DATASET(
+    'Cortex Agent',
+    'TECHUP_EVAL_LAB_DB.AGENTS.EVALS_TABLE',
+    'TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_CAMPAIGN_EVALSET',
+    OBJECT_CONSTRUCT('query_text', 'INPUT_QUERY', 'expected_tools', 'GROUND_TRUTH_DATA'));
+
+
+-- Confirm dataset creation
+SHOW DATASETS;
+
+-- Next we will create a stage to store our evaluation config file
+CREATE OR REPLACE STAGE TECHUP_EVAL_LAB_DB.AGENTS.EVAL_CONFIG_STAGE
+  DIRECTORY = (ENABLE = TRUE)
+  COMMENT = 'Internal stage to host evaluation config files';
+
+-- Copy file from git repo to stage
+-- COPY FILES INTO @TECHUP_EVAL_LAB_DB.AGENTS.EVAL_CONFIG_STAGE
+-- FROM @CORTEX_AGENT_QUICKSTART_REPO/branches/main/
+-- FILES = ('marketing_campaign_eval_config.yaml');
+
+
+-- Write eval config YAML with correct schema references
+-- (We inline it rather than copying from git so the schema path is correct)
+CREATE OR REPLACE TEMPORARY TABLE temp_eval_config (content VARCHAR);
+INSERT INTO temp_eval_config VALUES (
+'# Marketing Campaign Agent Evaluation Configuration
+# Evaluation metrics for answer correctness, logical consistency, tool selection accuracy,
+# execution efficiency and groundedness
+# Based on TruLens Agent GPA evaluation methodology
+
+# Evaluation task configuration
+evaluation:
+  agent_params:
+    agent_name: TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT
+    agent_type: CORTEX AGENT
+  run_params:
+    label: Marketing Campaign Agent Evaluation
+    description: Evaluating Answer Correctness, Logical Consistency, Tool Selection Accuracy, Tool Execution Accuracy, Groundedness and Execution Efficiency metrics for the marketing campaign analytics agent
+  source_metadata:
+    type: dataset
+    dataset_name: TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_CAMPAIGN_EVALSET
+
+metrics:
+  # Built-in metrics
+  - name: "answer_correctness"
+    version: "v3"
+  - name: "logical_consistency"
+    version: "v3"
+  - name: "tool_selection_accuracy"
+    version: "v3"
+  - name: "tool_execution_accuracy"
+    version: "v3"
+
+  # Custom Metrics
+
+  # Groundedness metric - TruLens Agent GPA based evaluation
+  # Evaluates whether the agent''s response is supported by the execution trace
+  - name: groundedness
+    model: "claude-sonnet-4-6"
+    score_ranges:
+      min_score: [0, 0.33]
+      median_score: [0.34, 0.66]
+      max_score: [0.67, 1]
+    prompt: |
+      You are evaluating the groundedness of an AI agent''s response. Groundedness measures
+      whether each substantive claim in the response is supported by concrete evidence in
+      the execution trace.
+
+      IMPORTANT: Evaluate claim-to-result alignment, not claim-to-tool-type alignment.
+      A claim is grounded only if the required evidence appears in actual tool outputs,
+      retrieved rows/snippets, report outputs, or other trace context.
+
+      Agent Response to Evaluate:
+      {{output}}
+
+      The complete agent execution trace is provided as context, including:
+      - All tool calls made (query_performance_metrics, search_campaign_content, generate_campaign_report)
+      - Tool outputs and retrieved data
+      - Intermediate reasoning steps
+
+      Here are a few examples of groundedness scores:
+
+      0 (Not Grounded):
+        - Key claims are unsupported, contradicted, or fabricated relative to tool results
+        - Superlative/comparative conclusions ("most compelling", "most alike", "best")
+          are made without evidence from returned results
+        - Report responses invent artifact details, KPIs, or findings not present in outputs
+
+      0.5 (Partially Grounded):
+        - Some important claims are evidence-backed, but at least one material conclusion
+          is weakly supported or not directly shown in results
+        - Comparison conclusion is plausible but incomplete (limited evidence or missing tie-break rationale)
+        - Report output details are partially accurate but omit or blur key result-backed facts
+
+      1 (Fully Grounded):
+        - All material claims are traceable to concrete evidence in tool results
+        - Metrics, campaign attributes, and report details match retrieved outputs
+        - Comparative/superlative conclusions are justified using explicit evidence
+        - When evidence is incomplete, the response states uncertainty instead of guessing
+
+      Consider:
+      - Are revenue figures, ROI percentages, and other metrics supported by result rows?
+      - Are campaign descriptions, A/B notes, and feedback grounded in returned snippets?
+      - For report requests, does the response accurately reflect report generation output
+        (artifact/link/name) and avoid fabricated details?
+      - For capability/meta queries, tool calls may be unnecessary; still require claims
+        to align with supported behavior and trace context, without over-claiming.
+
+  # Execution Efficiency metric - TruLens Agent GPA based evaluation
+  # Evaluates how optimally the agent uses its available tools to accomplish the user''s goal
+  - name: execution_efficiency
+    model: "claude-sonnet-4-6"
+    score_ranges:
+      min_score: [0, 0.33]
+      median_score: [0.34, 0.66]
+      max_score: [0.67, 1]
+    prompt: |
+      You are evaluating the execution efficiency of an AI agent that analyzes marketing
+      campaigns. Execution efficiency measures how optimally the agent uses its available
+      tools to accomplish the user''s goal.
+
+      The agent has access to three tools:
+      1. query_performance_metrics - For quantitative analysis (revenue, ROI, conversions, etc.)
+      2. search_campaign_content - For qualitative insights (descriptions, feedback, A/B tests)
+      3. generate_campaign_report - For creating comprehensive HTML reports
+
+      Analyze the complete agent execution trace provided as context, including:
+      - Execution duration: {{duration}} milliseconds
+      - Tool calls made and their sequence
+      - Any errors encountered: {{error}}
+      - Execution status: {{status}}
+
+      Here are a few examples of execution efficiency scores:
+
+      0 (Inefficient):
+        - Excessive or redundant tool calls relative to query complexity
+        - Repeated broad searches when one or two focused retrievals would suffice
+        - Multiple avoidable retries, loops, or backtracking steps
+        - Very long execution duration without proportional complexity
+        - Unnecessary tool chains for capability/meta questions
+
+      0.5 (Moderately Efficient):
+        - Reasonable path but with one notable inefficiency
+        - Slightly more calls than necessary, or avoidable duplicate retrieval
+        - Mostly direct flow with minor backtracking
+
+      1 (Highly Efficient):
+        - Minimal sensible path from request to answer
+        - Tool sequence is concise and dependency-aware
+        - No redundant retrievals or unnecessary calls
+        - Execution time is appropriate for task complexity
+
+      Consider:
+      - For report requests, was the flow efficient (identify campaign if needed ->
+        generate report -> optional concise support fetch)?
+      - For vague comparison questions, did the agent avoid repeated unfocused searches?
+      - For capability/meta queries, did it avoid unnecessary tool execution?
+      - Could the same result have been achieved with fewer calls or a tighter sequence?
+      - Focus on path efficiency and redundancy, not factual claim support.
+');
+
+CREATE OR REPLACE FILE FORMAT yaml_format
+  TYPE = 'CSV'
+  FIELD_DELIMITER = NONE
+  RECORD_DELIMITER = NONE
+  SKIP_HEADER = 0
+  FIELD_OPTIONALLY_ENCLOSED_BY = NONE
+  ESCAPE_UNENCLOSED_FIELD = NONE
+  COMPRESSION = NONE;
+
+COPY INTO @EVAL_CONFIG_STAGE/marketing_campaign_eval_config.yaml
+FROM (SELECT content FROM temp_eval_config)
+FILE_FORMAT = yaml_format
+SINGLE = TRUE
+OVERWRITE = TRUE
+HEADER = FALSE;
+
+DROP TABLE temp_eval_config;
+
+DESCRIBE STAGE eval_config_stage;
+
+-- Confirm yaml was uploaded
+LS @TECHUP_EVAL_LAB_DB.AGENTS.EVAL_CONFIG_STAGE;
+
+-- Check contents of yaml
+SELECT $1 FROM @TECHUP_EVAL_LAB_DB.AGENTS.EVAL_CONFIG_STAGE/marketing_campaign_eval_config.yaml;
+
+-- Kickoff evaluation run using yaml config
+CALL EXECUTE_AI_EVALUATION(
+  'START',
+  OBJECT_CONSTRUCT('run_name', 'BASELINE_MARKETING_AGENT_EVAL_RUN'),
+  '@TECHUP_EVAL_LAB_DB.AGENTS.EVAL_CONFIG_STAGE/marketing_campaign_eval_config.yaml'
+);
+
+
+-- Check status of evaluation run
+CALL EXECUTE_AI_EVALUATION( 
+  'STATUS',
+  OBJECT_CONSTRUCT('run_name', 'BASELINE_MARKETING_AGENT_EVAL_RUN'),
+  '@TECHUP_EVAL_LAB_DB.AGENTS.EVAL_CONFIG_STAGE/marketing_campaign_eval_config.yaml'
+);
+
+-- Iteratively check status of evaluation run and wait to proceed until eval is completed
+
+DECLARE
+    run_name VARCHAR DEFAULT 'BASELINE_MARKETING_AGENT_EVAL_RUN';
+    config_path VARCHAR DEFAULT '@TECHUP_EVAL_LAB_DB.AGENTS.EVAL_CONFIG_STAGE/marketing_campaign_eval_config.yaml';
+    max_wait_seconds NUMBER DEFAULT 600;
+    poll_interval_seconds NUMBER DEFAULT 20;
+    status_val VARCHAR;
+    elapsed NUMBER DEFAULT 0;
+BEGIN
+    LOOP
+        CALL EXECUTE_AI_EVALUATION('STATUS', OBJECT_CONSTRUCT('run_name', :run_name), :config_path);
+        LET status_cursor CURSOR FOR SELECT STATUS FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+        OPEN status_cursor;
+        FETCH status_cursor INTO status_val;
+        CLOSE status_cursor;
+        
+        IF (status_val = 'COMPLETED') THEN
+            RETURN 'COMPLETED after ' || :elapsed || ' seconds';
+        ELSEIF (status_val IN ('FAILED', 'ERROR')) THEN
+            RETURN 'FAILED';
+        ELSEIF (status_val = 'CANCELLED') THEN
+            RETURN 'CANCELLED';
+        END IF;
+        
+        IF (elapsed >= :max_wait_seconds) THEN
+            RETURN 'TIMEOUT after ' || :max_wait_seconds || ' seconds';
+        END IF;
+        
+        CALL SYSTEM$WAIT(:poll_interval_seconds);
+        elapsed := elapsed + :poll_interval_seconds;
+    END LOOP;
+END;
