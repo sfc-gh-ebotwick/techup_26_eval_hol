@@ -2,7 +2,7 @@
 PROMPT 1 - Find failure patterns and apply fixes to improve agent
 ================================================================================================
     
-Look at the eval result for my agent TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT and determine common failure patterns. 
+Look at the results from my eval run BASELINE_MARKETING_AGENT_EVAL_RUN for my agent TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT and determine common failure patterns. 
 Based on the failure analysis, generate improved orchestration and response instructions that fix the identified issues. 
 The instructions should tell the agent what format to respond in, when to use multiple tools and in what order, and encourage efficient tool calling. 
 Only make updates to the instructions - do not make any updates to the tool configuration or other areas of the agent spec. 
@@ -15,7 +15,8 @@ PROMPT 2 - Rerun eval and measure improvements
 
 
 Run the evaluation of TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_CAMPAIGNS_AGENT against the same dataset again.
-Compare the results against the baseline — show me a side-by-side comparison of scores by metricand highlight what improved.
+Use the same eval config yaml just update VERSION$1 -> VERSION$2. No other changes.
+Compare the results against the baseline — show me a side-by-side comparison of scores by metric and highlight what improved.
 
 
 ================================================================================================
