@@ -10,7 +10,7 @@
 --
 -- Prerequisites:
 -- - ACCOUNTADMIN role (or role with CREATE DATABASE privileges)
--- - Access to COMPUTE_WH warehouse (or modify warehouse name below)
+-- - Access to TECHUP_EVAL_WH warehouse (or modify warehouse name below)
 -- - SNOWFLAKE.CORTEX_USER database role granted
 --
 -- Estimated runtime: 5-10 minutes
@@ -27,7 +27,7 @@ USE ROLE ACCOUNTADMIN;
 CREATE DATABASE IF NOT EXISTS TECHUP_EVAL_LAB_DB;
 CREATE OR REPLACE SCHEMA TECHUP_EVAL_LAB_DB.AGENTS;
 USE SCHEMA TECHUP_EVAL_LAB_DB.AGENTS;
-CREATE WAREHOUSE IF NOT EXISTS COMPUTE_WH WAREHOUSE_SIZE='SMALL';
+CREATE WAREHOUSE IF NOT EXISTS TECHUP_EVAL_WH WAREHOUSE_SIZE='SMALL';
 
 
 -- ====================================================================
@@ -65,8 +65,8 @@ GRANT EXECUTE TASK ON ACCOUNT TO ROLE AGENT_EVAL_ROLE;
 -- Run evaluations
 GRANT MONITOR ON FUTURE AGENTS IN SCHEMA TECHUP_EVAL_LAB_DB.AGENTS TO ROLE AGENT_EVAL_ROLE;
 
--- Warehouse usage on COMPUTE_WH and on User's defualt WH (which is used for eval tasks)
-GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE AGENT_EVAL_ROLE;
+-- Warehouse usage on TECHUP_EVAL_WH and on User's defualt WH (which is used for eval tasks)
+GRANT USAGE ON WAREHOUSE TECHUP_EVAL_WH TO ROLE AGENT_EVAL_ROLE;
 
 EXECUTE IMMEDIATE $$
 DECLARE
@@ -299,7 +299,7 @@ SHOW SEMANTIC VIEWS LIKE 'MARKETING_PERFORMANCE_ANALYST';
 CREATE OR REPLACE CORTEX SEARCH SERVICE MARKETING_CAMPAIGNS_SEARCH
   ON combined_text
   ATTRIBUTES campaign_name, campaign_type, channel, content_type
-  WAREHOUSE = COMPUTE_WH
+  WAREHOUSE = TECHUP_EVAL_WH
   TARGET_LAG = '1 hour'
   AS (
     SELECT 
@@ -570,7 +570,7 @@ FROM SPECIFICATION $$
             "execution_environment": {
                 "query_timeout": 299,
                 "type": "warehouse",
-                "warehouse": "COMPUTE_WH"
+                "warehouse": "TECHUP_EVAL_WH"
             },
             "semantic_view": "TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_PERFORMANCE_ANALYST"
         },
@@ -578,7 +578,7 @@ FROM SPECIFICATION $$
             "execution_environment": {
                 "query_timeout": 299,
                 "type": "warehouse",
-                "warehouse": "COMPUTE_WH"
+                "warehouse": "TECHUP_EVAL_WH"
             },
             "search_service": "TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_CAMPAIGNS_SEARCH"
         },
@@ -587,7 +587,7 @@ FROM SPECIFICATION $$
             "identifier": "TECHUP_EVAL_LAB_DB.AGENTS.GENERATE_CAMPAIGN_REPORT_HTML",
             "execution_environment": {
                 "type": "warehouse",
-                "warehouse": "COMPUTE_WH",
+                "warehouse": "TECHUP_EVAL_WH",
                 "query_timeout": 300
             }
         }
