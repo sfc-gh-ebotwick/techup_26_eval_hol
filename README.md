@@ -14,7 +14,9 @@ In snowsight, navigate to your newly created Agent and click on the Evaluations 
 
 ## 3. Agent Optimization
 
-Now - follow instructions in [coco_setup_instructions.md](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_setup_instructions.md) to get setup with CoCo in Github Codespaces. Start a new CoCo CLI session by running ```cortex```. Run the two prompts in [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/edit/main/coco_prompts.txt). The first prompt will help analyze the evaluation executed in step 1 and improve your agent based on observed failure patterns. The second prompt will kick off a new evaluation run to measure how well your agent improved from your baseline to your optimized version. 
+Now - follow instructions in [coco_setup_instructions.md](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_setup_instructions.md) to get setup with CoCo in Github Codespaces. 
+
+Once CoCo is installed and configured - start a new CoCo CLI session by running ```cortex```. Run the two prompts in [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/edit/main/coco_prompts.txt). The first prompt will help analyze the evaluation executed in step 1 and improve your agent based on observed failure patterns. The second prompt will kick off a new evaluation run to measure how well your agent improved from your baseline to your optimized version. 
 
 ## 4. Challenge!
 
