@@ -11,27 +11,53 @@ This will launch your new Codespace. Now - open a terminal and run the following
 
 ```curl -LsS https://ai.snowflake.com/static/cc-scripts/install.sh | sh```
 
+Once CoCo CLI is installed, run the  ```cortex``` command to enter the setup flow. 
 
-Once CoCo CLI is installed, run the following command to create a new config file to store Snowflake Connections in.
+Choose 'Enter Connection Details Manually'
 
-```vi ~/.snowflake/connections.toml```
 
-Update the below config to use your account identifier and your account password. Your account identifier can be found by clicking the User menu in the bottom left-hand corner of Snowsight, then selecting 'Connect a tool to Snowflake'. 
-Your password is the login password you used to authenticate to your snowflake instance from DataOps Live. 
+<img width="449" height="280" alt="image" src="https://github.com/user-attachments/assets/632646bf-2a34-42fc-8a82-aaca0f6d5f92" />
 
-```
-[TECHUP_2026_TEST_VXFSSL]
-account = "<YOUR_ACCOUNT_IDENTIFIER>"
-user = "USER"
-password = "<YOUR_PASSWORD>"
-role = "AGENT_EVAL_ROLE"
-```
-(Note - you can edit in the vim editor by pressing the ```i``` key - but editing in a notepad or somewhere else is sometimes easier)
 
-Once you have pasted your updated config into the editor, click escape then type in ```:wq``` then enter to write the file and quit the editor.
+Paste in your account identifier. Your account identifier can be found by clicking the User menu in the bottom left-hand corner of Snowsight, then selecting 'Connect a tool to Snowflake'. 
 
-Now launch CoCo CLI by running the command ```cortex``` in your terminal.
 
-Select your settings and test your newly created connection. When prompted, specify YES that you want to use the same SQL connection as Agent connection and that you trust the directory you're working in. 
+<img width="493" height="387" alt="image" src="https://github.com/user-attachments/assets/6bb638c7-9edf-486e-ba7e-4ca076ecfbd0" />
 
-You should now be all set to run the prompts laid out in coco_prompts.txt
+
+
+We will authenticate via Programmatic Access Token (PAT).
+
+<img width="468" height="312" alt="image" src="https://github.com/user-attachments/assets/46d9e04b-7f9d-4ee3-8a56-140fb645cdd5" />
+
+
+We will first have to generate a PAT. To do so first click on the 'U' icon in the bottom left corner, then select Authentication and click Generate Token.
+
+<img width="1710" height="886" alt="image" src="https://github.com/user-attachments/assets/1596b9b8-09a3-46ac-b340-e410e26a9d6b" />
+
+IMPORTANT - select the newly created AGENT_EVAL_ROLE as the role associated with the PAT. If you have not run throguht the EVAL_HOL_SETUP.sql you will need to do so before proceeding. 
+
+<img width="569" height="513" alt="image" src="https://github.com/user-attachments/assets/dfcc2ab8-f66a-43bf-b54f-50d6183324fb" />
+
+Finally - you will need to create a temporary network rule exception for your token. Click the ellipses next to your newly created token. 
+
+<img width="704" height="278" alt="image" src="https://github.com/user-attachments/assets/4b71758e-aa0c-450b-b93d-d979a7e3983b" />
+
+Back in CoCo - paste in your newly created PAT.
+
+
+Next fill out the connection details. 
+
+
+Specify USER for user and AGENT_EVAL_ROLE for role.
+
+<img width="467" height="274" alt="image" src="https://github.com/user-attachments/assets/197f78d6-2228-467c-b8ec-00c37ec18aa9" />
+
+Once completed you should be able to successfully test your newly created agent. Note if your test fails you may have not forgotten to create the required network policy exception.
+
+<img width="542" height="426" alt="image" src="https://github.com/user-attachments/assets/a5951b98-8357-4c66-8364-cb87c49ac846" />
+
+
+After successfully testing your connection you will be - specify YES that you want to use the same SQL connection as Agent connection and that you trust the directory you're working in. 
+
+You should now be all set to run the prompts laid out in coco_prompts.txt!
