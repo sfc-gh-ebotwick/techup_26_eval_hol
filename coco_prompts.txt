@@ -14,7 +14,7 @@ PROMPT 2 - Rerun eval and measure improvements
 ================================================================================================
 
 
-Run the evaluation of TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_CAMPAIGNS_AGENT against the same dataset again.
+Run the evaluation of TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT against the same dataset again.
 Use the same eval config yaml just update VERSION$1 -> VERSION$2. No other changes.
 Compare the results against the baseline — show me a side-by-side comparison of scores by metric and highlight what improved.
 
