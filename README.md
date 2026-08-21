@@ -15,6 +15,21 @@ Run the [EVAL_HOL_SETUP.sql](https://github.com/sfc-gh-ebotwick/techup_26_eval_h
 
 In Snowsight, navigate to your newly created Agent and click on the Evaluations tab. Check out your global metric scores and get a sense of where your baseline agent is. Look into individual records to understand how the agent performed across a variety of metrics for given queries. 
 
+Start with the link generated at the end of your setup SQL - or navigate to Agents -> Marketing_Agent -> Evaluations
+
+
+<img width="1710" height="355" alt="image" src="https://github.com/user-attachments/assets/9fc1ab7f-f8ca-4ded-b062-858f6438375e" /> <br><br>
+You should see your baseline evaluation run completed here (note your scores may vary!)
+
+<img width="1710" height="879" alt="image" src="https://github.com/user-attachments/assets/01051989-7a79-4bd4-9839-05bd1395a337" />  <br><br>
+
+Clicking into the eval run - we can see individual and aggregate scores for all records in our evalset. You can also click View Details on the top right corner this page to see run status, LLM judge model versions, custom metric prompts etc.
+
+<img width="1710" height="879" alt="image" src="https://github.com/user-attachments/assets/1317c41a-e612-4f01-a439-1b7d0ee726a0" /> <br><br>
+
+Clicking into a single record shows us the trace for that request and the metric scores. We can drill into each metric to see not only the score but the **criteria** the metric used to generate the score and the **reason** that score was given. This qualitative info combined with the quantitative scores gives agent developers, and importantly CoCo, very good feedback to understand the root cause of low eval scores.
+
+
 ## 4. Agent Optimization
 
 Now - follow instructions in [coco_setup_instructions.md](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_setup_instructions.md) to get setup with CoCo in Github Codespaces. 
