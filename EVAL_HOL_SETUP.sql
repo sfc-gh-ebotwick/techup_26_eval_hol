@@ -886,3 +886,10 @@ BEGIN
         elapsed := elapsed + :poll_interval_seconds;
     END LOOP;
 END;
+
+SELECT 'SETUP COMPLETE! Access your evaluation results at link below';
+SELECT 'https://app.snowflake.com/' || 
+       LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || 
+       LOWER(CURRENT_ACCOUNT_NAME()) || 
+       '/#/agents/database/TECHUP_EVAL_LAB_DB/schema/AGENTS/agent/MARKETING_AGENT/details?tab=evaluations&preset=PRESET_LAST_DAY&type=relative' 
+       AS agent_eval_url;
