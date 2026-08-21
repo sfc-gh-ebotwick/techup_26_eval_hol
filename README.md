@@ -1,5 +1,5 @@
-# techup_26_eval_hol
-Hands on Lab materials for eval driven agent optimization coco for Techup 2026
+# ❄️ Snowflake TechUp 2026 - Eval Based Agentic Optimization HOL ❄️ 
+Hands on Lab materials for eval driven agent optimization session for Techup 2026
 
 
 # Instructions
