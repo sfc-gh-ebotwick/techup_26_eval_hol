@@ -5,7 +5,7 @@ Hands on Lab materials for eval driven agent optimization session for Techup 202
 # Instructions
 
 ## 1. Account Access
-Go to https://go.dataops.live/techup-2026-test and sign in with your Snowflake email to access a temporary snowflake environment for this lab. Click the generated snowflake account link and use provided credentials to login.
+Go to [https://go.dataops.live/ams-expansion-techup/register](https://go.dataops.live/ams-expansion-techup/register) and sign in with your Snowflake email to access a temporary snowflake environment for this lab. Click the generated snowflake account link and use provided credentials to login.
 
 ## 2. Setup 
 
