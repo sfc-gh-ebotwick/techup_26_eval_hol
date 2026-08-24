@@ -1,6 +1,8 @@
 # ❄️ Snowflake TechUp 2026 - Eval Based Agentic Optimization HOL ❄️ 
 Hands on Lab materials for eval driven agent optimization session for Techup 2026
 
+🙋‍♀️ If at any point in the lab you need help please post a message in https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX and tag @elliott.botwick, @parker.erickson, or @fady.heiba 🙋‍♀️
+
 
 # Instructions
 
@@ -34,7 +36,7 @@ Clicking into a single record shows us the trace for that request and the metric
 
 Now - follow instructions in [coco_setup_instructions.md](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_setup_instructions.md) to get setup with CoCo in Github Codespaces. 
 
-Once CoCo is installed and configured - start a new CoCo CLI session by running ```cortex```. Click shift+tab to go into  Run the two prompts in [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/edit/main/coco_prompts.txt). The first prompt will help analyze the evaluation executed in step 1 and improve your agent based on observed failure patterns. The second prompt will kick off a new evaluation run to measure how well your agent improved from your baseline to your optimized version. 
+Once CoCo is installed and configured - start a new CoCo CLI session by running ```cortex```. Click shift+tab to go into Bypass Mode. Run the two prompts in [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/edit/main/coco_prompts.txt). The first prompt will help analyze the evaluation executed in step 1 and improve your agent based on observed failure patterns. The second prompt will kick off a new evaluation run to measure how well your agent improved from your baseline to your optimized version. 
 
 ## 5. Challenge!
 
@@ -46,3 +48,7 @@ A few ideas of things to try
 - Enriched tool descriptions
 
 The world is your oyster - get creative and see if you can impress the judges - LLM and Human!
+
+To submit, post a short summary of what you did to improve your agent and how high you were able to get your scores. 
+
+Post your summaries to https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX
