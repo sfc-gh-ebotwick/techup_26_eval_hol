@@ -1,6 +1,25 @@
 ## TechUp CoCo Setup
 
-We recommend using Github Codespaces to get a clean cloud-hosted VSCode environment to run CoCo in for this lab. This helps avoid conflicts with existing local coco skills, preferences etc and is easier to setup. 
+As Snowflake SE's you should be comfortable setting up new Snowflake Environments in your CoCo CLI. For this lab the easiest way to use CoCo will be to set up a new connection in CoCo desktop. Click on the Snowflake connection icon in the top left corner. Click add connection. 
+
+
+Fill out as below. **Ensure you set the role to AGENT_EVAL_ROLE** for this connection to not encounter permissions errors in the lab.
+
+<img width="484" height="860" alt="image" src="https://github.com/user-attachments/assets/4e042aad-a322-4b63-b8bc-46bd76209b32" /> <br>
+
+Your account identifier can be found by clicking the User menu in the bottom left-hand corner of Snowsight, then selecting 'Connect a tool to Snowflake'. 
+
+<img width="664" height="474" alt="image" src="https://github.com/user-attachments/assets/c3b8c83b-390a-44a9-8d23-ec5dbc1e749e" /> <br>
+
+Local OAuth should open a new browser for you to authenticate with the credentials provided on the dataops registration page. Once you've signed in you should be all set. Run ```cortex -c your_connection_name``` to start CoCo with your new instance.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+### Clean CoCo env setup (as necessary)
+
+If you would like a fresh environment to run your CoCo CLI in - we recommend using Github Codespaces to get a clean cloud-hosted VSCode environment for this lab. This helps avoid conflicts with existing local coco skills, preferences etc and is easier to setup. 
 
 First go to https://github.com/codespaces - and locate the Blank template, click Use this Template.
 
