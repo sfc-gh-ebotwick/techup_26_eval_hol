@@ -1,4 +1,5 @@
-# ❄️ Snowflake TechUp 2026 - Eval Based Agentic Optimization HOL ❄️ 
+# ❄️ Snowflake TechUp 2026 ❄️
+# Eval Based Agentic Optimization HOL  
 Hands on Lab materials for eval driven agent optimization session for Techup 2026
 
 🙋‍♀️ If at any point in the lab you need help please post a message in https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX and tag @elliott.botwick, @parker.erickson, or @fady.heiba 🙋‍♀️
