@@ -52,4 +52,4 @@ The world is your oyster - get creative and see if you can impress the judges - 
 
 To submit, post a short summary of what you did to improve your agent and how high you were able to get your scores. 
 
-Post your summaries to https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX
+Post your summaries to [https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX](https://snowflake.slack.com/archives/C0BQDQZUZMX/p1787691909733529)
