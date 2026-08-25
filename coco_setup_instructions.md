@@ -13,6 +13,8 @@ Your account identifier can be found by clicking the User menu in the bottom lef
 
 Local OAuth should open a new browser for you to authenticate with the credentials provided on the dataops registration page. Once you've signed in you should be all set. Run ```cortex -c your_connection_name``` to start CoCo with your new instance.
 
+NOTE - If you have a lot of custom configurations in your CoCo instance (custom skills related to agent optimization, highly opionated AGENTS.md files etc etc) you may encounter behaviors that differ from the intended experience. See below instructions for setting up a clean CoCo installation if you think your CoCo config may cause conflicts with existing agent-studio skills.
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
