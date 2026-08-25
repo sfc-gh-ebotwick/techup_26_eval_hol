@@ -12,7 +12,7 @@ Go to [https://go.dataops.live/ams-expansion-techup/register](https://go.dataops
 
 ## 2. Setup 
 
-Run the [EVAL_HOL_SETUP.sql](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/edit/main/EVAL_HOL_SETUP.sql) file to provision a new database with data, a semantic view, a cortex search service and a custom tool before wrapping these services into a baseline agent and running your first evaluation.
+Run the [EVAL_HOL_SETUP.sql](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/EVAL_HOL_SETUP.sql) file to provision a new database with data, a semantic view, a cortex search service and a custom tool before wrapping these services into a baseline agent and running your first evaluation.
 
 ## 3. Eval Investigation
 
@@ -37,7 +37,7 @@ Clicking into a single record shows us the trace for that request and the metric
 
 Now - follow instructions in [coco_setup_instructions.md](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_setup_instructions.md) to get setup with CoCo in Github Codespaces. 
 
-Once CoCo is installed and configured - start a new CoCo CLI session by running ```cortex```. Click shift+tab to go into Bypass Mode. Run the two prompts in [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/edit/main/coco_prompts.txt). The first prompt will help analyze the evaluation executed in step 1 and improve your agent based on observed failure patterns. The second prompt will kick off a new evaluation run to measure how well your agent improved from your baseline to your optimized version. 
+Once CoCo is installed and configured - start a new CoCo CLI session by running ```cortex```. Click shift+tab to go into Bypass Mode. Run the two prompts in [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_prompts.txt). The first prompt will help analyze the evaluation executed in step 1 and improve your agent based on observed failure patterns. The second prompt will kick off a new evaluation run to measure how well your agent improved from your baseline to your optimized version. 
 
 ## 5. Challenge!
 
