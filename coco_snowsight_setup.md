@@ -12,8 +12,7 @@ roles from the user menu in the bottom-left corner of Snowsight.
 ## Step 2: Open CoCo and run the prompts
 
 1. With your workspace open, click the **CoCo** chat icon in Snowsight
-2. Confirm the workspace you just set up is the active context
-3. Run the prompts from [coco_prompts.txt](./coco_prompts.txt) in order
+2. Run the prompts from [coco_prompts.txt](./coco_prompts.txt) in order
 
 
 ## Optional: Set `Always allow` for running commands 

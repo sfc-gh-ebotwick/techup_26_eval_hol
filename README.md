@@ -35,7 +35,7 @@ Clicking into a single record shows us the trace for that request and the metric
 
 ## 4. Agent Optimization
 
-Time to improve your agent using Cortex Code (CoCo)! You have two options depending on your environment. Both options use the same prompts from [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_prompts.txt) to analyze the evaluation results and drive improvements.
+Time to improve your agent using Cortex Code (CoCo)! You have two options depending on your environment. Both options use the same prompts from [coco_prompts.txt](./coco_prompts.txt) to analyze the evaluation results and drive improvements.
 
 ---
 
