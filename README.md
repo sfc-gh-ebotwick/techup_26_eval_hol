@@ -12,7 +12,7 @@ Go to [https://go.dataops.live/ams-expansion-techup/register](https://go.dataops
 
 ## 2. Setup 
 
-Run the [EVAL_HOL_SETUP.sql](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/EVAL_HOL_SETUP.sql) file to provision a new database with data, a semantic view, a cortex search service and a custom tool before wrapping these services into a baseline agent and running your first evaluation.
+Run the [EVAL_HOL_SETUP.sql](EVAL_HOL_SETUP.sql) file to provision a new database with data, a semantic view, a cortex search service and a custom tool before wrapping these services into a baseline agent and running your first evaluation.
 
 ## 3. Eval Investigation
 
@@ -55,7 +55,7 @@ Both options produce the same result: improved agent instructions saved as a new
 
 ---
 
-### Option 1: CoCo Snowsight (browser-based)
+### Option 1 (recommended): CoCo Snowsight (browser-based)
 
 No local install required. Follow the full setup guide: [coco_snowsight_setup.md](./coco_snowsight_setup.md)
 
