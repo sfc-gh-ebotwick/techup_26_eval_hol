@@ -1,4 +1,4 @@
-## TechUp CoCo Setup
+# Option 2: CoCo CLI Setup
 
 As Snowflake SE's you should be comfortable setting up new Snowflake Environments in your CoCo CLI. For this lab the easiest way to use CoCo will be to set up a new connection in CoCo desktop. Click on the Snowflake connection icon in the top left corner. Click add connection. 
 
@@ -81,4 +81,4 @@ Once completed you should be able to successfully test your newly created agent.
 
 After successfully testing your connection you will be - specify YES that you want to use the same SQL connection as Agent connection and that you trust the directory you're working in. 
 
-You should now be all set to run the prompts laid out in coco_prompts.txt!
+You should now be all set to run the prompts laid out in [coco_prompts.txt](coco_prompts.txt)!

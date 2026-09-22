@@ -1,13 +1,22 @@
 ================================================================================================
 PROMPT 1 - Find failure patterns and apply fixes to improve agent
 ================================================================================================
-    
+
+## Project
+
+You are helping improve a Cortex Agent that answers questions about marketing campaign performance. 
+The agent is named `MARKETING_AGENT` and lives at `TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT`
+
 Look at the results from my eval run BASELINE_MARKETING_AGENT_EVAL_RUN for my agent TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT and determine common failure patterns. 
 Based on the failure analysis, generate improved orchestration and response instructions that fix the identified issues. 
 The instructions should tell the agent what format to respond in, when to use multiple tools and in what order, and encourage efficient tool calling. 
 Only make updates to the instructions - do not make any updates to the tool configuration or other areas of the agent spec. 
 Apply the changes and commit them to a new agent version. Use the agent-studio skill and associated subskills.
-	
+
+When updating the agent, each instruction change must be saved as a new incremental version (`VERSION$2`, `VERSION$3`, etc.) — never overwrite a previous version. 
+Verify with `SHOW VERSIONS IN AGENT TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT` before and after saving. 
+Each eval run must target the specific new version by name in the eval YAML.
+
     
 ================================================================================================
 PROMPT 2 - Rerun eval and measure improvements

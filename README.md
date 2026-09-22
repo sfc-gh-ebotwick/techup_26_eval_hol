@@ -2,7 +2,7 @@
 # Eval Based Agentic Optimization HOL  
 Hands on Lab materials for eval driven agent optimization session for Techup 2026
 
-🙋‍♀️ If at any point in the lab you need help please post a message in https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX and tag @elliott.botwick, @parker.erickson, @fady.heiba or @haebichan.jung  🙋‍♀️
+🙋‍♀️ If at any point in the lab you need help please post a message in https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX and tag @elliott.botwick, @sharon.li 🙋‍♀️
 
 
 # Instructions
@@ -12,7 +12,7 @@ Go to [https://go.dataops.live/ams-expansion-techup/register](https://go.dataops
 
 ## 2. Setup 
 
-Run the [EVAL_HOL_SETUP.sql](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/EVAL_HOL_SETUP.sql) file to provision a new database with data, a semantic view, a cortex search service and a custom tool before wrapping these services into a baseline agent and running your first evaluation.
+Run the [EVAL_HOL_SETUP.sql](EVAL_HOL_SETUP.sql) file to provision a new database with data, a semantic view, a cortex search service and a custom tool before wrapping these services into a baseline agent and running your first evaluation.
 
 ## 3. Eval Investigation
 
@@ -35,9 +35,35 @@ Clicking into a single record shows us the trace for that request and the metric
 
 ## 4. Agent Optimization
 
-Now - follow instructions in [coco_setup_instructions.md](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_setup_instructions.md) to get setup with CoCo in Github Codespaces. 
+Time to improve your agent using Cortex Code (CoCo)! You have two options depending on your environment. Both options use the same prompts from [coco_prompts.txt](./coco_prompts.txt) to analyze the evaluation results and drive improvements.
 
-Once CoCo is installed and configured - start a new CoCo CLI session by running ```cortex```. Click shift+tab to go into Bypass Mode. Run the two prompts in [coco_prompts.txt](https://github.com/sfc-gh-ebotwick/techup_26_eval_hol/blob/main/coco_prompts.txt). The first prompt will help analyze the evaluation executed in step 1 and improve your agent based on observed failure patterns. The second prompt will kick off a new evaluation run to measure how well your agent improved from your baseline to your optimized version. 
+---
+
+### Which option should I choose?
+
+| | Option 1: CoCo Snowsight | Option 2: CoCo CLI |
+|---|---|---|
+| **Where it runs** | In your browser via Snowsight | Locally on your machine (or in GitHub Codespaces) |
+| **Setup friction** | Low — already available in Snowsight | Moderate — requires CLI install and connection config |
+| **Control** | Uses a Snowflake workspace for file context; same CoCo capabilities via the Snowsight chat panel | Full local filesystem, can read/write agent YAML files directly, supports all `cortex agent-studio` subcommands |
+| **Best for** | Attendees whose org restricts local tooling or who want the quickest path | Attendees whose org has approved the CoCo CLI / Codespaces |
+
+Both options produce the same result: improved agent instructions saved as a new committed version, and a re-evaluation run to measure the improvement.
+
+> [!WARNING]
+> **Choose one option and stick with it.** Do not switch between CLI and Snowsight mid-lab.
+
+---
+
+### Option 1 (recommended): CoCo Snowsight (browser-based)
+
+No local install required. Follow the full setup guide: [coco_snowsight_setup.md](./coco_snowsight_setup.md)
+
+### Option 2: CoCo CLI (via GitHub Codespaces or local)
+
+Follow the full setup guide: [coco_cli_setup.md](./coco_cli_setup.md)
+
+---
 
 ## 5. Challenge!
 
@@ -53,3 +79,10 @@ The world is your oyster - get creative and see if you can impress the judges - 
 To submit, post a short summary of what you did to improve your agent and how high you were able to get your scores. 
 
 Post your summaries to [https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX](https://snowflake.slack.com/archives/C0BQDQZUZMX/p1787691909733529)
+
+
+# TODO
+1. Update the DataOps link to Major TechUp event link
+2. Update slack channel link
+3. Ask for more support members
+
