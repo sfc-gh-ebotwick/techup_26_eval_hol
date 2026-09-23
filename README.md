@@ -2,13 +2,13 @@
 # Eval Based Agentic Optimization HOL  
 Hands on Lab materials for eval driven agent optimization session for Techup 2026
 
-🙋‍♀️ If at any point in the lab you need help please post a message in https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX and tag @elliott.botwick, @sharon.li 🙋‍♀️
+🙋‍♀️ If at any point in the lab you need help please post a message in https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX and tag any of @elliott.botwick, @sharon.li, @haley.massa, @andrew.samant, and justin.marciszewski 🙋‍♀️
 
 
 # Instructions
 
 ## 1. Account Access
-Go to [https://go.dataops.live/ams-expansion-techup/register](https://go.dataops.live/ams-expansion-techup/register) and sign in with your Snowflake email to access a temporary snowflake environment for this lab. Click the generated snowflake account link and use provided credentials to login.
+Please plan to use your SE demo Snowflake account for this lab! If you have any issues with environment access please ping in the above linked slack channel.  
 
 ## 2. Setup 
 
@@ -78,8 +78,7 @@ The world is your oyster - get creative and see if you can impress the judges - 
 
 To submit, post a short summary of what you did to improve your agent and how high you were able to get your scores. 
 
-Post your summaries to [https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX](https://snowflake.slack.com/archives/C0BQDQZUZMX/p1787691909733529)
-
+Post your summaries in appropriate threads (use the threads!!!) on https://snowflake.enterprise.slack.com/archives/C0BQDQZUZMX
 
 # TODO
 1. Update the DataOps link to Major TechUp event link
