@@ -689,6 +689,7 @@ evaluation:
   agent_params:
     agent_name: TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT
     agent_type: CORTEX AGENT
+    agent_version: VERSION$1
   run_params:
     label: Marketing Campaign Agent Evaluation
     description: Evaluating Answer Correctness, Logical Consistency, Tool Selection Accuracy, Tool Execution Accuracy, Groundedness and Execution Efficiency metrics for the marketing campaign analytics agent
