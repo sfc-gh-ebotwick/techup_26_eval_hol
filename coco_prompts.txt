@@ -4,6 +4,8 @@ PROMPT 1 - Find failure patterns and apply fixes to improve agent
 
 ## Project
 
+Important - make sure you use the AGENT_EVAL_ROLE as the role for all work in this session.
+
 You are helping improve a Cortex Agent that answers questions about marketing campaign performance. 
 The agent is named `MARKETING_AGENT` and lives at `TECHUP_EVAL_LAB_DB.AGENTS.MARKETING_AGENT`
 
